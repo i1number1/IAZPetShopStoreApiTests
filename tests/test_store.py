@@ -1,6 +1,7 @@
 import allure
 import requests
 import jsonschema
+import pytest
 from .schemas.store_schema import STORE_SCHEMA
 from .schemas.inventory_schema import INVENTORY_SCHEMA
 
@@ -31,7 +32,7 @@ class TestStore:
 
         with allure.step("Проверка статуса ответа и валидация JSON-схемы"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
-            jsonschema.validate(response.json(), STORE_SCHEMA)
+            jsonschema.validate(response.json, STORE_SCHEMA)
 
         with allure.step("Проверка параметров заказа в ответе"):
             assert response_json['id'] == payload['id'], "id заказа не совпадает с ожидаемым"
@@ -43,27 +44,22 @@ class TestStore:
 
 ## тест-кейс 43
     @allure.title("Получение информации о заказе по ID")
-    def test_store_get_order_by_id(self):
+    def test_store_get_order_by_id(self, create_order):
 
-        order_id = 1
+        order_id = create_order["id"]
 
         with allure.step("Отправка запроса на получение информации о заказе по ID"):
             response = requests.get(url=f"{BASE_URL}/store/order/{order_id}")
 
         with allure.step("Проверка статуса ответа и данных заказа"):
             assert response.status_code == 200, "Код ответа не совпал с ожидаемым"
-
-        with allure.step("Проверка, что ответ содержит заказ с нужным ID"):
-            response_json = response.json()
-            assert "id" in response_json
-            assert response_json["id"] == order_id
-
+            assert response.json()["id"] == order_id
 
 ## тест-кейс 44
     @allure.title("Удаление заказа по ID")
-    def test_store_delete_order_by_id(self):
+    def test_store_delete_order_by_id(self, create_order):
 
-        order_id = 1
+        order_id = create_order["id"]
 
         with allure.step("Отправка запроса на удаление заказа по ID"):
             response = requests.delete(url=f"{BASE_URL}/store/order/{order_id}")
